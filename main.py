@@ -2,6 +2,8 @@
 
 from moviepy.editor import VideoFileClip, ImageClip
 from progress.bar import ChargingBar
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 import datetime
 import sys
 import time
@@ -10,7 +12,13 @@ import os.path
 
 folder_todo = "TODO/"
 folder_done = "DONE/"
+is_running = False
+folder_arg = ""
 
+class MyHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        print ("Folder event")
+        if (is_running == False): getFileList(folder_arg)
 
 
 def createfolderifneeded(path):
@@ -41,7 +49,7 @@ def getFileList(path):
 
 
 def seekBlackFrame(videofile,path,gap=3,cduration=120):
-	
+	is_running = True
 	clip = VideoFileClip(path+folder_todo+videofile)
 	fps= 1/gap
 	nframes = clip.duration*fps # total number of frames used
@@ -103,13 +111,13 @@ def seekBlackFrame(videofile,path,gap=3,cduration=120):
 				audio_codec='aac', 
 				temp_audiofile='temp-audio.m4a', 
 				remove_temp=True)
-
+	is_running = False
 	return 	report
 
 
 # getFileList("/Users/jterraz/Desktop/DERUSH/")
 
-print("Derushbot V0.0.2")
+print("Derush Bot V0.0.3")
 
 
 
@@ -117,7 +125,21 @@ if len(sys.argv) > 1:
 	folder_arg = sys.argv[1]
 	if(os.path.isdir(folder_arg)):
 		createfolderifneeded(folder_arg)
+		
+		event_handler = MyHandler()
+		observer = Observer()
+		observer.schedule(event_handler, folder_arg+folder_todo, recursive=False)
+		observer.start()
 		getFileList(folder_arg)
+		try:
+			while True:
+				time.sleep(1)
+		except KeyboardInterrupt:
+			observer.stop()
+		observer.join()
+
+
+
 	else:
 		print(folder_arg + " is not a valid path")
 else:
