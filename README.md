@@ -7,14 +7,14 @@ A script help me derush my bike camera by searching for 5 secondes black frame a
 ## Instalation 
 
 
-Install pyton3.6
+- Install pyton3.6
 https://www.python.org/downloads/
 
-Install Ffmpeg
--- Raspberry
-sudo apt-get install ffmpeg
--- Mac
-brew install ffmpeg
+- Install Ffmpeg
+	- For Raspberry
+	`sudo apt-get install ffmpeg`
+	- For Mac
+	`brew install ffmpeg`
 
 Install required modules
 
@@ -30,13 +30,12 @@ python3.6 -m pip install watchdog
 Create a folder for example : /home/derush
 and then two folder inside TODO and DONE
 
-/home/derush/TODO
-/home/derush/DONE
+- /home/derush/TODO
+- /home/derush/DONE
 
 The put you rush inside the TODO folder and run the script like that
 
 ``` python
-
 python3.6 main.py /home/derush/
 
 ```
