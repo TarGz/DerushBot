@@ -2,6 +2,7 @@
 
 from moviepy.editor import VideoFileClip, ImageClip
 from progress.bar import ChargingBar
+from progress.spinner import Spinner
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import datetime
@@ -47,7 +48,7 @@ class DerushBot():
 		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_|  |____/ \____/  |_|   	",'magenta',attrs=['bold'])
 		cprint("                                                                   	",'magenta',attrs=['bold'])
 		                                                                   
-		cprint("Version "+self.version, 'magenta', attrs=['reverse','bold','underline'])
+		cprint("Version "+self.version, 'magenta', attrs=['bold','underline'])
 		self.event_handler = MyHandler()
 		self.observer = Observer()
 
@@ -85,6 +86,7 @@ class DerushBot():
 
 	def setPath(self,folder_arg):
 		self.path = folder_arg
+		print(" ")
 		print("Working path is " + colored(self.path, 'green', attrs=['underline']))
 		self.createFolderIfNeeded(self.path)
 
@@ -105,11 +107,15 @@ class DerushBot():
 		if(len(todo) > 0):
 			vid = todo[0]
 			finename = os.path.basename(vid)
-			print("Found a job !! I'm working on %s  " % colored(finename, 'blue', attrs=['underline']))
+			print(" ")
+			print("Found a file, I'm working on %s  " % colored(finename, 'blue', attrs=['underline']))
+			
+			print(" ")
+			spinner = Spinner('Waiting for file... ')
 			while True :
 				filesize = os.path.getsize(vid)
-
-				time.sleep(2)
+				spinner.next()
+				time.sleep(1)
 				filesize2 = os.path.getsize(vid)
 
 				if(filesize==filesize2):
@@ -120,8 +126,10 @@ class DerushBot():
 			repport = self.seekBlackFrame(finename,self.path)
 			dest = self.path+self.folder_done+repport+"-"+finename
 
+			
+			print(" ")
 			print("Work on "+finename + " is " +colored("finished", 'green', attrs=['reverse']) )
-			print("Moving source to %s" % colored(dest, 'blue', attrs=['underline']))
+
 			os.rename(vid,dest)
 			self.is_running = False
 
@@ -137,7 +145,8 @@ class DerushBot():
 		blackframe=0
 		report="minoritaire"
 
-		bar = ChargingBar(colored("Searching for events", 'blue', attrs=['reverse']), max=int(clip.duration*fps))
+
+		bar = ChargingBar(colored("Scanning for events", 'blue', attrs=['underline']), max=int(clip.duration*fps))
 
 
 		for frame in clip.iter_frames(fps,dtype=int,progress_bar=False):
@@ -171,11 +180,8 @@ class DerushBot():
 		bar.finish()
 		
 		if(len(sequences)>0):
-
-			print("I found :  %s" % colored(str(len(sequences))+" event", 'blue', attrs=['bold']))
-
-
-
+			print(" ")
+			print("I founded %s" % colored( str(len(sequences))+" majority repport", 'red', attrs=['reverse']) )
 			for seq in sequences:
 				clipbegin 		= seq[0]
 				clipend 		= seq[1]
@@ -184,14 +190,17 @@ class DerushBot():
 				begin_time 		= datetime.timedelta(seconds=clipbegin)
 				new_filename 	= "%s%s-%s->%s.MP4" % (path,videofile,clipbegin_str,clipend_str)
 				newclip 		= clip.subclip(clipbegin,clipend)
-
+				print(" ")
 				print("Exporting video to  :  %s" % colored("%s-%s->%s.MP4" % (videofile,clipbegin_str,clipend_str), 'green', attrs=['reverse']))
-
+				print(" ")
 				newclip.write_videofile(new_filename,
 					codec='libx264', 
 					audio_codec='aac', 
 					temp_audiofile='temp-audio.m4a', 
 					remove_temp=True,progress_bar=True,verbose=False)
+		else:
+			print(" ")
+			print("Reckon as a   %s" % colored("minority repport", 'grey', attrs=['reverse']))
 		return 	report
 
 
