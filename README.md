@@ -22,6 +22,7 @@ Install required modules
 python3.6 -m pip install moviepy
 python3.6 -m pip install progress
 python3.6 -m pip install watchdog
+python3.6 -m pip install termcolor
 ````
 
 
