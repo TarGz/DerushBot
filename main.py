@@ -120,7 +120,7 @@ class DerushBot():
 			repport = self.seekBlackFrame(finename,self.path)
 			dest = self.path+self.folder_done+repport+"-"+finename
 
-			print("Work on "+finename + " is " +colored("finished", 'blue', attrs=['reverse']) )
+			print("Work on "+finename + " is " +colored("finished", 'green', attrs=['reverse']) )
 			print("Moving source to %s" % colored(dest, 'blue', attrs=['underline']))
 			os.rename(vid,dest)
 			self.is_running = False
