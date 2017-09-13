@@ -135,7 +135,7 @@ class DerushBot():
 
 
 
-	def seekBlackFrame(self,videofile,path,gap=3,cduration=120):
+	def seekBlackFrame(self,videofile,path,gap=3,cduration=60):
 		
 		clip = VideoFileClip(path+self.folder_todo+videofile)
 		fps= 1/gap
