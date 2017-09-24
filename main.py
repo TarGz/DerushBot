@@ -31,7 +31,7 @@ class MyHandler(FileSystemEventHandler):
         if (bot.is_running == False): bot.checkForVideoInPath()
 
 class DerushBot():
-	version = "0.0.3"
+	version = "0.0.4"
 	folder_todo = "TODO/"
 	folder_done = "DONE/"
 	is_running = False
@@ -167,11 +167,14 @@ class DerushBot():
 					report="majoritaire"
 					clipbegin = t-cduration-gap
 					if(clipbegin < 0): clipbegin = 0
-					clipend = t-(gap*2)
-					# print("Saving sublcip")
-					# print("clipbegin : "+str(clipbegin))
-					# print("clipend : "+str(clipend))
 
+					if(len(sequences)>0) : # Avoiding overlap 
+						prevEndFrame = sequences[len(sequences)-1][1]
+						# print("prevEndFrame" + str(prevEndFrame))
+						if(clipbegin < prevEndFrame):
+							clipbegin = prevEndFrame  + gap
+
+					clipend = t-(gap*2)
 					sequences.append([clipbegin,clipend])
 
 			elif(average == 0): # DETECTING BLACK FRAME
@@ -181,6 +184,8 @@ class DerushBot():
 		
 		if(len(sequences)>0):
 			print(" ")
+			print("Sequences founds")
+			print(sequences)
 			print("I founded %s" % colored( str(len(sequences))+" majority repport", 'red', attrs=['reverse']) )
 			for seq in sequences:
 				clipbegin 		= seq[0]
