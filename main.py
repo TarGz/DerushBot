@@ -32,11 +32,11 @@ class MyHandler(FileSystemEventHandler):
         if (bot.is_running == False): bot.checkForVideoInPath()
 
 class DerushBot():
-	version = "0.0.5"
+	version = "0.0.6"
 	folder_todo = "/Users/julienterraz/Documents/_TarGz/DERUSH/TODO/"
-	folder_done = "/Volumes/BIG/BIKING/_DONE/"
+	folder_done = "/Users/julienterraz/Documents/_TarGz/DERUSH/DONE/"
 	folder_error = "/Users/julienterraz/Documents/_TarGz/DERUSH/ERROR/"
-	folder_item = "/Users/julienterraz/Dropbox/Photos/BIKE/CABALANCEPASMAL/_DATABASE/_NEW/"
+	folder_item = "/Volumes/YELLOW/Dropbox/Photos/BIKE/CABALANCEPASMAL/_DATABASE/_NEW/"
 	is_running = False
 	path=""
 
@@ -48,7 +48,7 @@ class DerushBot():
 		cprint(" | |  | | |__  | |__) | |  | | (___ | |__| |  | |_) | |  | | | |   	",'magenta',attrs=['bold'])
 		cprint(" | |  | |  __| |  _  /| |  | |\___ \|  __  |  |  _ <| |  | | | |   	",'magenta',attrs=['bold'])
 		cprint(" | |__| | |____| | \ \| |__| |____) | |  | |  | |_) | |__| | | |   	",'magenta',attrs=['bold'])
-		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_|  |____/ \____/  |_|   	",'magenta',attrs=['bold'])
+		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_|  |____/ \____/  |_|   ",'magenta',attrs=['bold'])
 		cprint("                                                                   	",'magenta',attrs=['bold'])
 		                                                                   
 		cprint("Version "+self.version, 'magenta', attrs=['bold','underline'])
@@ -59,64 +59,35 @@ class DerushBot():
 
 
 	def listenToFolder(self,arg):
-		# if len(arg) > 1:
-		# 	folder_arg = arg[1]
-		# 	if(os.path.isdir(folder_arg)):
-				
 
-				# self.setPath(folder_arg)	
+		# self.setPath(folder_arg)	
 
-				# Listen to new files added to the folder			
-				self.observer.schedule(self.event_handler, self.folder_todo, recursive=False)
-				self.observer.start()
+		# Listen to new files added to the folder			
+		self.observer.schedule(self.event_handler, self.folder_todo, recursive=False)
+		self.observer.start()
 
-				# Check video in the folder at script launch
-				self.checkForVideoInPath()
+		# Check video in the folder at script launch
+		self.checkForVideoInPath()
 
-				try:
-					while True:
-						time.sleep(1)
-				except KeyboardInterrupt:
-					self.observer.stop()
-				self.observer.join()
+		try:
+			while True:
+				time.sleep(1)
+		except KeyboardInterrupt:
+			self.observer.stop()
+		self.observer.join()
 
-
-
-		# 	else:
-		# 		cprint('ERROR :'+folder_arg + " is not a valid path",'red')
-		# else:
-		#     cprint("ERROR : you should provide a path",'red')  
-
-	# def setPath(self,folder_arg):
-	# 	self.path = folder_arg
-	# 	print(" ")
-	# 	print("Working path is " + colored(self.path, 'green', attrs=['underline']))
-	# 	self.createFolderIfNeeded(self.path)
-
-	# def createFolderIfNeeded(self,path):
-	# 	todo = path+self.folder_todo
-	# 	if not os.path.exists(todo):
-	# 		print("creating folder : " + colored(self.path, 'red', attrs=['reverse']))
-	# 		os.makedirs(todo)
-	# 	done = path+self.folder_done
-	# 	if not os.path.exists(done):
-	# 		print("I'm creating the folder : " + colored(done, 'red', attrs=['reverse']))
-	# 		print("put your MP4 files inside")
-	# 		os.makedirs(done)
-	# 	error = path+self.folder_error
-	# 	if not os.path.exists(error):
-	# 		print("I'm creating the folder : " + colored(error, 'red', attrs=['reverse']))
-	# 		print("check for file with issues here")
-	# 		os.makedirs(error)
 
 	def checkForVideoInPath(self):
 		todo = glob.glob(self.folder_todo+"*.MP4")
 		
 		if(len(todo) > 0):
 			vid = todo[0]
-			finename = os.path.basename(vid)
+			file = os.path.basename(vid)
+			videoID, file_extension = os.path.splitext(file)
 			print(" ")
-			print("Working on %s  " % colored(finename, 'blue', attrs=['underline']))
+			print("Working on %s  " % colored(file, 'blue', attrs=['underline']))
+			print("videoID %s  " % colored(videoID, 'blue', attrs=['underline']))
+			print("file_extension %s  " % colored(file_extension, 'blue', attrs=['underline']))
 			
 			print(" ")
 			spinner = Spinner('Waiting for file... ')
@@ -133,9 +104,9 @@ class DerushBot():
 			
 			# try:
 			
-			repport = self.seekBlackFrame(finename)
-			dest = self.folder_done+repport+"-"+finename
-			print("\nWorking on "+finename + " is " +colored("finished", 'green', attrs=['reverse']) )
+			report = self.seekBlackFrame(file)
+			dest = self.folder_done+videoID+"-"+report+file_extension
+			print("\nWorking on "+file + " is " +colored("finished", 'green', attrs=['reverse']) )
 
 			# os.rename(vid,dest)
 			shutil.move(vid,dest)
@@ -143,8 +114,8 @@ class DerushBot():
 			# except:
 			# 	e = sys.exc_info()
 			# 	print("Error  :	" + colored(e, 'white',  'on_blue'))
-			# 	print ("\nUnable work on : "+finename+"\n moving it to error folder")	
-			# 	dest = self.path+self.folder_error+"-"+finename
+			# 	print ("\nUnable work on : "+file+"\n moving it to error folder")	
+			# 	dest = self.path+self.folder_error+"-"+file
 			# 	os.rename(vid,dest)
 
 			self.is_running = False
