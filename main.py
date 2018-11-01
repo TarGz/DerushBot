@@ -11,6 +11,7 @@ import time
 import glob
 import os.path
 from termcolor import colored, cprint
+import shutil
 
 class color:
 	HEADER = '\033[95m'
@@ -31,9 +32,11 @@ class MyHandler(FileSystemEventHandler):
         if (bot.is_running == False): bot.checkForVideoInPath()
 
 class DerushBot():
-	version = "0.0.3"
-	folder_todo = "TODO/"
-	folder_done = "DONE/"
+	version = "0.0.6"
+	folder_todo = "/Users/julienterraz/Documents/_TarGz/DERUSH/TODO/"
+	folder_done = "/Users/julienterraz/Documents/_TarGz/DERUSH/DONE/"
+	folder_error = "/Users/julienterraz/Documents/_TarGz/DERUSH/ERROR/"
+	folder_item = "/Volumes/YELLOW/Dropbox/Photos/BIKE/CABALANCEPASMAL/_DATABASE/_NEW/"
 	is_running = False
 	path=""
 
@@ -45,7 +48,7 @@ class DerushBot():
 		cprint(" | |  | | |__  | |__) | |  | | (___ | |__| |  | |_) | |  | | | |   	",'magenta',attrs=['bold'])
 		cprint(" | |  | |  __| |  _  /| |  | |\___ \|  __  |  |  _ <| |  | | | |   	",'magenta',attrs=['bold'])
 		cprint(" | |__| | |____| | \ \| |__| |____) | |  | |  | |_) | |__| | | |   	",'magenta',attrs=['bold'])
-		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_|  |____/ \____/  |_|   	",'magenta',attrs=['bold'])
+		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_|  |____/ \____/  |_|   ",'magenta',attrs=['bold'])
 		cprint("                                                                   	",'magenta',attrs=['bold'])
 		                                                                   
 		cprint("Version "+self.version, 'magenta', attrs=['bold','underline'])
@@ -56,88 +59,75 @@ class DerushBot():
 
 
 	def listenToFolder(self,arg):
-		if len(arg) > 1:
-			folder_arg = arg[1]
-			if(os.path.isdir(folder_arg)):
-				
 
-				self.setPath(folder_arg)	
+		# self.setPath(folder_arg)	
 
-				# Listen to new files added to the folder			
-				self.observer.schedule(self.event_handler, folder_arg+self.folder_todo, recursive=False)
-				self.observer.start()
+		# Listen to new files added to the folder			
+		self.observer.schedule(self.event_handler, self.folder_todo, recursive=False)
+		self.observer.start()
 
-				# Check video in the folder at script launch
-				self.checkForVideoInPath()
+		# Check video in the folder at script launch
+		self.checkForVideoInPath()
 
-				try:
-					while True:
-						time.sleep(1)
-				except KeyboardInterrupt:
-					self.observer.stop()
-				self.observer.join()
+		try:
+			while True:
+				time.sleep(1)
+		except KeyboardInterrupt:
+			self.observer.stop()
+		self.observer.join()
 
-
-
-			else:
-				cprint('ERROR :'+folder_arg + " is not a valid path",'red')
-		else:
-		    cprint("ERROR : you should provide a path",'red')  
-
-	def setPath(self,folder_arg):
-		self.path = folder_arg
-		print(" ")
-		print("Working path is " + colored(self.path, 'green', attrs=['underline']))
-		self.createFolderIfNeeded(self.path)
-
-	def createFolderIfNeeded(self,path):
-		todo = path+self.folder_todo
-		if not os.path.exists(todo):
-			print("creating folder : " + colored(self.path, 'red', attrs=['reverse']))
-			os.makedirs(todo)
-		done = path+self.folder_done
-		if not os.path.exists(done):
-			print("I'm creating the folder : " + colored(done, 'red', attrs=['reverse']))
-			print("put your MP4 files inside")
-			os.makedirs(done)
 
 	def checkForVideoInPath(self):
-		todo = glob.glob(self.path+self.folder_todo+"*.MP4")
+		todo = glob.glob(self.folder_todo+"*.MP4")
 		
 		if(len(todo) > 0):
 			vid = todo[0]
-			finename = os.path.basename(vid)
+			file = os.path.basename(vid)
+			videoID, file_extension = os.path.splitext(file)
 			print(" ")
-			print("Found a file, I'm working on %s  " % colored(finename, 'blue', attrs=['underline']))
+			print("Working on %s  " % colored(file, 'blue', attrs=['underline']))
+			print("videoID %s  " % colored(videoID, 'blue', attrs=['underline']))
+			print("file_extension %s  " % colored(file_extension, 'blue', attrs=['underline']))
 			
 			print(" ")
 			spinner = Spinner('Waiting for file... ')
 			while True :
 				filesize = os.path.getsize(vid)
-				spinner.next()
-				time.sleep(1)
-				filesize2 = os.path.getsize(vid)
+				for x in range(0, 10):
+					spinner.next()
+					time.sleep(1)
 
+				filesize2 = os.path.getsize(vid)
 				if(filesize==filesize2):
 					break
 			self.is_running = True
 			
+			try:
+				report = self.seekBlackFrame(file)
+				dest = self.folder_done+videoID+"-"+report+file_extension
+				print("\nWorking on "+file + " is " +colored("finished", 'green', attrs=['reverse']) )
 
-			repport = self.seekBlackFrame(finename,self.path)
-			dest = self.path+self.folder_done+repport+"-"+finename
+				shutil.move(vid,dest)
 
-			
-			print(" ")
-			print("Work on "+finename + " is " +colored("finished", 'green', attrs=['reverse']) )
+			except:
+				e = sys.exc_info()
+				print("Error  :	" + colored(e, 'white',  'on_blue'))
+				print ("\nUnable work on : "+file+"\n moving it to error folder")	
+				dest = self.path+self.folder_error+"-"+file
+				os.rename(vid,dest)
 
-			os.rename(vid,dest)
+
+				log_file_txt = open(dest+".log", "w")
+				log_file_txt.write(format(e))
+				log_file_txt.close()
+
 			self.is_running = False
 
 
 
-	def seekBlackFrame(self,videofile,path,gap=3,cduration=60):
+	def seekBlackFrame(self,videofile,gap=3,cduration=60):
 		
-		clip = VideoFileClip(path+self.folder_todo+videofile)
+		clip = VideoFileClip(self.folder_todo+videofile)
 		fps= 1/gap
 		nframes = clip.duration*fps # total number of frames used
 		sequences=[]
@@ -146,12 +136,12 @@ class DerushBot():
 		report="minoritaire"
 
 
-		bar = ChargingBar(colored("Scanning for events", 'blue', attrs=['underline']), max=int(clip.duration*fps))
+		#bar = ChargingBar(colored("Scanning for events", 'blue', attrs=['underline']), max=int(nframes))
 
 
-		for frame in clip.iter_frames(fps,dtype=int,progress_bar=False):
+		for frame in clip.iter_frames(fps,dtype=int,progress_bar=True):
 			i = i + 1
-			bar.next()
+			# bar.next()
 
 			red = frame[400,:,0].max();
 			green = frame[400,:,1].max();
@@ -167,20 +157,25 @@ class DerushBot():
 					report="majoritaire"
 					clipbegin = t-cduration-gap
 					if(clipbegin < 0): clipbegin = 0
-					clipend = t-(gap*2)
-					# print("Saving sublcip")
-					# print("clipbegin : "+str(clipbegin))
-					# print("clipend : "+str(clipend))
 
+					if(len(sequences)>0) : # Avoiding overlap 
+						prevEndFrame = sequences[len(sequences)-1][1]
+						# print("prevEndFrame" + str(prevEndFrame))
+						if(clipbegin < prevEndFrame):
+							clipbegin = prevEndFrame  + gap
+
+					clipend = t-(gap*2)
 					sequences.append([clipbegin,clipend])
 
 			elif(average == 0): # DETECTING BLACK FRAME
 				blackframe=blackframe+1
 				
-		bar.finish()
+		# bar.finish()
 		
 		if(len(sequences)>0):
 			print(" ")
+			print("Sequences founds")
+			print(sequences)
 			print("I founded %s" % colored( str(len(sequences))+" majority repport", 'red', attrs=['reverse']) )
 			for seq in sequences:
 				clipbegin 		= seq[0]
@@ -188,7 +183,8 @@ class DerushBot():
 				clipbegin_str 	= time.strftime("%M%S", time.gmtime(clipbegin))
 				clipend_str 	= time.strftime("%M%S", time.gmtime(clipend))
 				begin_time 		= datetime.timedelta(seconds=clipbegin)
-				new_filename 	= "%s%s-%s->%s.MP4" % (path,videofile,clipbegin_str,clipend_str)
+				new_filename 	= "%s%s-%s->%s.MP4" % (self.folder_item,videofile,clipbegin_str,clipend_str)
+				#temp_audio 		= "%s%s-%s->%s.m4a" % (self.folder_item,videofile,clipbegin_str,clipend_str)
 				newclip 		= clip.subclip(clipbegin,clipend)
 				print(" ")
 				print("Exporting video to  :  %s" % colored("%s-%s->%s.MP4" % (videofile,clipbegin_str,clipend_str), 'green', attrs=['reverse']))
@@ -196,7 +192,7 @@ class DerushBot():
 				newclip.write_videofile(new_filename,
 					codec='libx264', 
 					audio_codec='aac', 
-					temp_audiofile='temp-audio.m4a', 
+					temp_audiofile='%stemp-audio.m4a' %(self.folder_item), 
 					remove_temp=True,progress_bar=True,verbose=False)
 		else:
 			print(" ")
