@@ -102,21 +102,24 @@ class DerushBot():
 					break
 			self.is_running = True
 			
-			# try:
-			
-			report = self.seekBlackFrame(file)
-			dest = self.folder_done+videoID+"-"+report+file_extension
-			print("\nWorking on "+file + " is " +colored("finished", 'green', attrs=['reverse']) )
+			try:
+				report = self.seekBlackFrame(file)
+				dest = self.folder_done+videoID+"-"+report+file_extension
+				print("\nWorking on "+file + " is " +colored("finished", 'green', attrs=['reverse']) )
 
-			# os.rename(vid,dest)
-			shutil.move(vid,dest)
+				shutil.move(vid,dest)
 
-			# except:
-			# 	e = sys.exc_info()
-			# 	print("Error  :	" + colored(e, 'white',  'on_blue'))
-			# 	print ("\nUnable work on : "+file+"\n moving it to error folder")	
-			# 	dest = self.path+self.folder_error+"-"+file
-			# 	os.rename(vid,dest)
+			except:
+				e = sys.exc_info()
+				print("Error  :	" + colored(e, 'white',  'on_blue'))
+				print ("\nUnable work on : "+file+"\n moving it to error folder")	
+				dest = self.path+self.folder_error+"-"+file
+				os.rename(vid,dest)
+
+
+				log_file_txt = open(dest+".log", "w")
+				log_file_txt.write(format(e))
+				log_file_txt.close()
 
 			self.is_running = False
 
