@@ -12,6 +12,7 @@ import glob
 import os.path
 from termcolor import colored, cprint
 import shutil
+import subprocess
 
 class color:
 	HEADER = '\033[95m'
@@ -32,7 +33,7 @@ class MyHandler(FileSystemEventHandler):
         if (bot.is_running == False): bot.checkForVideoInPath()
 
 class DerushBot():
-	version = "0.0.6"
+	version = "0.0.7"
 	folder_todo = "/Users/julienterraz/Documents/_TarGz/DERUSH/TODO/"
 	folder_done = "/Users/julienterraz/Documents/_TarGz/DERUSH/DONE/"
 	folder_error = "/Users/julienterraz/Documents/_TarGz/DERUSH/ERROR/"
@@ -43,12 +44,12 @@ class DerushBot():
 
 
 	def __init__(self):
-		cprint("  _____  ______ _____  _    _  _____ _    _    ____   ____ _______ 	",'magenta',attrs=['bold'])
-		cprint(" |  __ \|  ____|  __ \| |  | |/ ____| |  | |  |  _ \ / __ \__   __|	",'magenta',attrs=['bold'])
-		cprint(" | |  | | |__  | |__) | |  | | (___ | |__| |  | |_) | |  | | | |   	",'magenta',attrs=['bold'])
-		cprint(" | |  | |  __| |  _  /| |  | |\___ \|  __  |  |  _ <| |  | | | |   	",'magenta',attrs=['bold'])
-		cprint(" | |__| | |____| | \ \| |__| |____) | |  | |  | |_) | |__| | | |   	",'magenta',attrs=['bold'])
-		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_|  |____/ \____/  |_|   ",'magenta',attrs=['bold'])
+		cprint("  _____  ______ _____  _    _  _____ _    _  ____   ____ _______ 	",'magenta',attrs=['bold'])
+		cprint(" |  __ \|  ____|  __ \| |  | |/ ____| |  | ||  _ \ / __ \__   __|	",'magenta',attrs=['bold'])
+		cprint(" | |  | | |__  | |__) | |  | | (___ | |__| || |_) | |  | | | |   	",'magenta',attrs=['bold'])
+		cprint(" | |  | |  __| |  _  /| |  | |\___ \|  __  ||  _ <| |  | | | |   	",'magenta',attrs=['bold'])
+		cprint(" | |__| | |____| | \ \| |__| |____) | |  | || |_) | |__| | | |   	",'magenta',attrs=['bold'])
+		cprint(" |_____/|______|_|  \_\\_____/|_____/|_|  |_||____/ \____/  |_|   ",'magenta',attrs=['bold'])
 		cprint("                                                                   	",'magenta',attrs=['bold'])
 		                                                                   
 		cprint("Version "+self.version, 'magenta', attrs=['bold','underline'])
@@ -105,13 +106,13 @@ class DerushBot():
 			try:
 				report = self.seekBlackFrame(file)
 				dest = self.folder_done+videoID+"-"+report+file_extension
-				print("\nWorking on "+file + " is " +colored("finished", 'green', attrs=['reverse']) )
+				print("\nWorking on "+file + " is " +colored("finished", 'green') )
 
 				shutil.move(vid,dest)
 
 			except:
 				e = sys.exc_info()
-				print("Error  :	" + colored(e, 'white',  'on_blue'))
+				print("Error  :	" + colored( e, 'red') )
 				print ("\nUnable work on : "+file+"\n moving it to error folder")	
 				dest = self.path+self.folder_error+"-"+file
 				os.rename(vid,dest)
@@ -135,14 +136,8 @@ class DerushBot():
 		blackframe=0
 		report="minoritaire"
 
-
-		#bar = ChargingBar(colored("Scanning for events", 'blue', attrs=['underline']), max=int(nframes))
-
-
 		for frame in clip.iter_frames(fps,dtype=int,progress_bar=True):
 			i = i + 1
-			# bar.next()
-
 			red = frame[400,:,0].max();
 			green = frame[400,:,1].max();
 			blue = frame[400,:,2].max();
@@ -156,16 +151,18 @@ class DerushBot():
 					blackframe=0
 					report="majoritaire"
 					clipbegin = t-cduration-gap
-					if(clipbegin < 0): clipbegin = 0
+					if(clipbegin < 0): clipbegin = 2
 
 					if(len(sequences)>0) : # Avoiding overlap 
-						prevEndFrame = sequences[len(sequences)-1][1]
-						# print("prevEndFrame" + str(prevEndFrame))
-						if(clipbegin < prevEndFrame):
-							clipbegin = prevEndFrame  + gap
-
+						pre_end_time = (sequences[len(sequences)-1][1])
+						begin_time = datetime.timedelta(seconds=clipbegin)
+						if(begin_time < pre_end_time):
+							clipbegin = pre_end_time # TODO : Add gap  
 					clipend = t-(gap*2)
-					sequences.append([clipbegin,clipend])
+
+					begin_time = datetime.timedelta(seconds=clipbegin)
+					end_time = datetime.timedelta(seconds=clipend)
+					sequences.append([(begin_time),(end_time)])
 
 			elif(average == 0): # DETECTING BLACK FRAME
 				blackframe=blackframe+1
@@ -176,27 +173,28 @@ class DerushBot():
 			print(" ")
 			print("Sequences founds")
 			print(sequences)
-			print("I founded %s" % colored( str(len(sequences))+" majority repport", 'red', attrs=['reverse']) )
+			print("I founded %s" % colored( str(len(sequences))+" majority repport", 'red') )
 			for seq in sequences:
-				clipbegin 		= seq[0]
-				clipend 		= seq[1]
-				clipbegin_str 	= time.strftime("%M%S", time.gmtime(clipbegin))
-				clipend_str 	= time.strftime("%M%S", time.gmtime(clipend))
-				begin_time 		= datetime.timedelta(seconds=clipbegin)
-				new_filename 	= "%s%s-%s->%s.MP4" % (self.folder_item,videofile,clipbegin_str,clipend_str)
-				#temp_audio 		= "%s%s-%s->%s.m4a" % (self.folder_item,videofile,clipbegin_str,clipend_str)
-				newclip 		= clip.subclip(clipbegin,clipend)
+				begin_time 		= str(seq[0])
+				end_time 		= str(seq[1])
+				print("begin_time",begin_time)
+				print("end_time",end_time)
+				new_filename 	= "%s%s-%s->%s.MP4" % (self.folder_item,videofile,begin_time,end_time)
+				# FFMEPG
+				print("Exporting video to  :  %s" % colored("%s-%s->%s.MP4" % (videofile,begin_time,end_time), 'green'))
 				print(" ")
-				print("Exporting video to  :  %s" % colored("%s-%s->%s.MP4" % (videofile,clipbegin_str,clipend_str), 'green', attrs=['reverse']))
-				print(" ")
-				newclip.write_videofile(new_filename,
-					codec='libx264', 
-					audio_codec='aac', 
-					temp_audiofile='%stemp-audio.m4a' %(self.folder_item), 
-					remove_temp=True,progress_bar=True,verbose=False)
+				os.chdir(self.folder_todo)
+				try:
+				    subprocess.check_output([ 'ffmpeg','-ss',begin_time,'-i',videofile,'-to','0:01:00','-c','copy',new_filename])
+				    # subprocess.check_output([ 'ffmpeg','-ss',begin_time,'-i',videofile,'-to',end_time,'-c','copy',new_filename], stderr=subprocess.STDOUT)
+				except subprocess.CalledProcessError:
+					e = sys.exc_info()
+					print("Error  :	" + colored( str(len(e)), 'red', attrs=['reverse']) )
+					print ("\nUnable to ffmpeg : "+videofile+"\n !")	
+
 		else:
 			print(" ")
-			print("Reckon as a   %s" % colored("minority repport", 'grey', attrs=['reverse']))
+			print("Reckon as a   %s" % colored("minority repport", 'red'))
 		return 	report
 
 
