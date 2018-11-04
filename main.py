@@ -179,13 +179,13 @@ class DerushBot():
 				end_time 		= str(seq[1])
 				print("begin_time",begin_time)
 				print("end_time",end_time)
-				new_filename 	= "%s%s-%s->%s.MP4" % (self.folder_item,videofile,begin_time,end_time)
+				new_filename 	= "%s%s-%s->%s.MP4" % (self.folder_item,videofile,begin_time.replace(":", "-"),end_time.replace(":", "-"))
 				# FFMEPG
-				print("Exporting video to  :  %s" % colored("%s-%s->%s.MP4" % (videofile,begin_time,end_time), 'green'))
+				print("Exporting video to  :  %s" % colored("%s-%s->%s.MP4" % (videofile,begin_time.replace(":", "-"),end_time.replace(":", "-")), 'green'))
 				print(" ")
 				os.chdir(self.folder_todo)
 				try:
-				    subprocess.check_output([ 'ffmpeg','-ss',begin_time,'-i',videofile,'-to','0:01:00','-c','copy',new_filename])
+				    subprocess.check_output([ 'ffmpeg','-ss',begin_time,'-i',videofile,'-to','0:01:00','-c','copy',new_filename],stderr=subprocess.STDOUT)
 				    # subprocess.check_output([ 'ffmpeg','-ss',begin_time,'-i',videofile,'-to',end_time,'-c','copy',new_filename], stderr=subprocess.STDOUT)
 				except subprocess.CalledProcessError:
 					e = sys.exc_info()
